@@ -69,7 +69,7 @@ pub async fn import_media(app: AppHandle, path: String) -> Result<MediaMetadata,
     let audio = probe.streams.iter().find(|stream| stream.is_audio());
 
     if video.is_none() && audio.is_none() {
-        return Err("A fájl nem tartalmaz támogatott video- vagy audiosávot.".to_owned());
+        return Err("The file has no supported video or audio stream.".to_owned());
     }
 
     let duration_seconds = probe
@@ -78,10 +78,10 @@ pub async fn import_media(app: AppHandle, path: String) -> Result<MediaMetadata,
         .and_then(|format| parse_positive_number(format.duration.as_deref()))
         .or_else(|| video.and_then(|stream| parse_positive_number(stream.duration.as_deref())))
         .or_else(|| audio.and_then(|stream| parse_positive_number(stream.duration.as_deref())))
-        .ok_or_else(|| "A média hossza nem olvasható.".to_owned())?;
+        .ok_or_else(|| "Cannot read the media duration.".to_owned())?;
 
     if !duration_seconds.is_finite() || duration_seconds <= 0.0 {
-        return Err("A média hossza érvénytelen.".to_owned());
+        return Err("The media duration is invalid.".to_owned());
     }
 
     let has_video = video.is_some();
@@ -102,7 +102,7 @@ pub async fn import_media(app: AppHandle, path: String) -> Result<MediaMetadata,
         })
         .unwrap_or(0.0);
     let file_metadata = std::fs::metadata(&canonical)
-        .map_err(|error| format!("A médiafájl adatai nem olvashatók: {error}"))?;
+        .map_err(|error| format!("Cannot read the media file metadata: {error}"))?;
     let name = canonical
         .file_name()
         .and_then(|name| name.to_str())
@@ -111,7 +111,7 @@ pub async fn import_media(app: AppHandle, path: String) -> Result<MediaMetadata,
 
     app.asset_protocol_scope()
         .allow_file(&canonical)
-        .map_err(|error| format!("Az előnézeti hozzáférés nem engedélyezhető: {error}"))?;
+        .map_err(|error| format!("Cannot grant preview access: {error}"))?;
 
     Ok(MediaMetadata {
         path: canonical.to_string_lossy().into_owned(),
@@ -138,36 +138,36 @@ pub(crate) async fn probe_video_dimensions(
         .streams
         .iter()
         .find(|stream| stream.is_video())
-        .ok_or_else(|| "A forrás nem tartalmaz videosávot.".to_owned())?;
+        .ok_or_else(|| "The source has no video stream.".to_owned())?;
     let width = video
         .width
         .filter(|value| *value > 0)
-        .ok_or_else(|| "A videó szélessége nem olvasható.".to_owned())?;
+        .ok_or_else(|| "Cannot read the video width.".to_owned())?;
     let height = video
         .height
         .filter(|value| *value > 0)
-        .ok_or_else(|| "A videó magassága nem olvasható.".to_owned())?;
+        .ok_or_else(|| "Cannot read the video height.".to_owned())?;
     Ok((width, height))
 }
 
 pub fn validate_input_file(path: &str) -> Result<PathBuf, String> {
     if path.trim().is_empty() {
-        return Err("Hiányzó fájlútvonal.".to_owned());
+        return Err("Missing file path.".to_owned());
     }
 
     let requested = Path::new(path);
     if !requested.is_absolute() {
-        return Err("Csak abszolút helyi fájlútvonal engedélyezett.".to_owned());
+        return Err("Only absolute local file paths are allowed.".to_owned());
     }
 
     let canonical = requested
         .canonicalize()
-        .map_err(|error| format!("A médiafájl nem érhető el: {error}"))?;
+        .map_err(|error| format!("Cannot access the media file: {error}"))?;
     let metadata = std::fs::metadata(&canonical)
-        .map_err(|error| format!("A médiafájl nem olvasható: {error}"))?;
+        .map_err(|error| format!("Cannot read the media file: {error}"))?;
 
     if !metadata.is_file() {
-        return Err("A kiválasztott útvonal nem fájl.".to_owned());
+        return Err("The selected path is not a file.".to_owned());
     }
 
     Ok(canonical)
@@ -188,15 +188,15 @@ async fn probe_document(app: &AppHandle, path: &Path) -> Result<ProbeDocument, S
 
     if !output.status.success() {
         return Err(format!(
-            "ffprobe nem tudta beolvasni a médiát: {}",
+            "ffprobe could not read the media: {}",
             short_stderr(&output.stderr)
         ));
     }
     if output.stdout.len() > MAX_PROBE_OUTPUT_BYTES {
-        return Err("A média metadata-válasza túl nagy.".to_owned());
+        return Err("The media metadata response is too large.".to_owned());
     }
 
-    serde_json::from_slice(&output.stdout).map_err(|error| format!("Hibás ffprobe válasz: {error}"))
+    serde_json::from_slice(&output.stdout).map_err(|error| format!("Invalid ffprobe response: {error}"))
 }
 
 impl ProbeStream {
@@ -225,7 +225,7 @@ async fn run_probe(app: &AppHandle, arguments: Vec<String>) -> Result<Output, St
         .await
         .map_err(|path_error| {
             format!(
-                "ffprobe nem indítható. Futtasd az `npm run ffmpeg:prepare` parancsot. Sidecar: {sidecar_error}; PATH: {path_error}"
+                "Cannot start ffprobe. Run `npm run ffmpeg:prepare`. Sidecar: {sidecar_error}; PATH: {path_error}"
             )
         })
 }
@@ -259,7 +259,7 @@ fn short_stderr(stderr: &[u8]) -> String {
     text.lines()
         .rev()
         .find(|line| !line.trim().is_empty())
-        .unwrap_or("ismeretlen ffprobe hiba")
+        .unwrap_or("unknown ffprobe error")
         .chars()
         .take(280)
         .collect()

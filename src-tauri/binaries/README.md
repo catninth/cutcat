@@ -1,16 +1,16 @@
 # FFmpeg sidecars
 
-`npm install` futtatja a `scripts/prepare-ffmpeg.mjs` scriptet. Ez az
-`ffmpeg-static` és `ffprobe-static` binárisokat a Tauri által elvárt
-target-triple névre másolja ebbe a mappába.
+`npm install` runs `scripts/prepare-ffmpeg.mjs`. This copies the
+`ffmpeg-static` and `ffprobe-static` binaries into this directory
+using the target-triple filenames required by Tauri.
 
-A nagy platformbinárisok nincsenek Gitben.
+Large platform binaries are not tracked in Git.
 
-Kézi frissítés:
+Manual update:
 
 ```powershell
 npm.cmd run ffmpeg:prepare
 ```
 
-Release előtt ellenőrizd az FFmpeg build konfigurációját és a
-`THIRD_PARTY_NOTICES.md` licenc-megjegyzéseit.
+Before a release, check the FFmpeg build configuration and the
+license notes in `THIRD_PARTY_NOTICES.md`.

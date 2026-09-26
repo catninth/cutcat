@@ -232,7 +232,7 @@ export const Timeline = memo(function Timeline({
       if (event.key.toLowerCase() === "v" && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setTool("select");
-        onAnnounce("Kijelölés eszköz aktív.");
+        onAnnounce("Select tool active.");
       } else if (
         event.key.toLowerCase() === "c" &&
         !event.ctrlKey &&
@@ -240,7 +240,7 @@ export const Timeline = memo(function Timeline({
       ) {
         event.preventDefault();
         setTool("razor");
-        onAnnounce("Vágás eszköz aktív.");
+        onAnnounce("Cut tool active.");
       } else if (event.key === "Escape") {
         setTool("select");
       } else if (event.key === "+" || event.key === "=") {
@@ -323,7 +323,7 @@ export const Timeline = memo(function Timeline({
     onCommitProject(finalProject);
     if (finalClip) {
       onAnnounce(
-        `${drag.edge === "start" ? "Klip eleje" : "Klip vége"}: ${formatTimecode(
+        `${drag.edge === "start" ? "Clip start" : "Clip end"}: ${formatTimecode(
           drag.edge === "start" ? finalClip.sourceInUs : finalClip.sourceOutUs,
           drag.media.fps,
         )}`,
@@ -390,7 +390,7 @@ export const Timeline = memo(function Timeline({
     const next = reorderVideoClips(project, clipId, targetIndex);
     onCommitProject(next);
     onSelectClip(clipId);
-    onAnnounce("Klip sorrendje megváltozott.");
+    onAnnounce("Clip order changed.");
   };
 
   return (
@@ -424,8 +424,8 @@ export const Timeline = memo(function Timeline({
           <span>TIMELINE</span>
           <small>
             {hasClips
-              ? `${project.videoClips.length} videó · ${project.audioClips.length} hang · ${formatDuration(durationUs)}`
-              : "Nincs média"}
+              ? `${project.videoClips.length} video · ${project.audioClips.length} audio · ${formatDuration(durationUs)}`
+              : "No media"}
           </small>
         </div>
         <div className="timeline-tools">
@@ -433,34 +433,34 @@ export const Timeline = memo(function Timeline({
             className={`tool-button ${tool === "select" ? "is-active" : ""}`}
             type="button"
             aria-pressed={tool === "select"}
-            title="Kijelölés és mozgatás (V)"
+            title="Select and move (V)"
             onClick={() => {
               setTool("select");
-              onAnnounce("Kijelölés eszköz aktív.");
+              onAnnounce("Select tool active.");
             }}
           >
             <span className="cursor-glyph" aria-hidden="true" />
-            Kijelölés
+            Select
           </button>
           <button
             className={`tool-button ${tool === "razor" ? "is-active" : ""}`}
             type="button"
             aria-pressed={tool === "razor"}
             disabled={!hasClips}
-            title="Vágás kattintási pontnál (C)"
+            title="Cut at click position (C)"
             onClick={() => {
               setTool("razor");
-              onAnnounce("Vágás eszköz aktív.");
+              onAnnounce("Cut tool active.");
             }}
           >
             <Icon name="scissors" size={16} />
-            Vágás
+            Cut
           </button>
           <span className="toolbar-divider" />
           <button
             className="icon-button"
             type="button"
-            aria-label="Timeline kicsinyítése"
+            aria-label="Zoom out timeline"
             disabled={!hasClips}
             onClick={() => zoom(0.8)}
           >
@@ -469,7 +469,7 @@ export const Timeline = memo(function Timeline({
           <button
             className="icon-button"
             type="button"
-            aria-label="Timeline kitöltése"
+            aria-label="Fit timeline"
             disabled={!hasClips}
             onClick={fitTimeline}
           >
@@ -478,7 +478,7 @@ export const Timeline = memo(function Timeline({
           <button
             className="icon-button"
             type="button"
-            aria-label="Timeline nagyítása"
+            aria-label="Zoom in timeline"
             disabled={!hasClips}
             onClick={() => zoom(1.25)}
           >
@@ -492,18 +492,18 @@ export const Timeline = memo(function Timeline({
           <div className="ruler-header" />
           <div className="track-header">
             <strong>V1</strong>
-            <span>VIDEÓ</span>
+            <span>VIDEO</span>
           </div>
           <div className="track-header audio-track-header">
             <strong>A1</strong>
-            <span>HANG</span>
+            <span>AUDIO</span>
           </div>
         </div>
 
         <div
           ref={viewportRef}
           className="timeline-scroll"
-          aria-label="Timeline szerkesztőfelület"
+          aria-label="Timeline editor"
           tabIndex={0}
           onKeyDown={(event) => {
             if (event.key === "Home") {
@@ -612,9 +612,9 @@ export const Timeline = memo(function Timeline({
                       className="clip-body"
                       type="button"
                       draggable={tool === "select"}
-                      aria-label={`${index + 1}. videóklip, ${source?.name ?? "ismeretlen"}, ${formatDuration(
+                      aria-label={`Video clip ${index + 1}, ${source?.name ?? "unknown"}, ${formatDuration(
                         clipPlaybackDurationUs(clip),
-                      )}, ${clip.speed}×${clip.muted ? ", némítva" : ""}`}
+                      )}, ${clip.speed}×${clip.muted ? ", muted" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         const timeUs = timeFromClientX(event.clientX);
@@ -658,7 +658,7 @@ export const Timeline = memo(function Timeline({
                         ))}
                       </div>
                       <div className="clip-copy">
-                        <strong>{source?.name ?? "Videó"}</strong>
+                        <strong>{source?.name ?? "Video"}</strong>
                         <span>
                           {formatTimecode(clip.sourceInUs, source?.fps || 30)} –{" "}
                           {formatTimecode(clip.sourceOutUs, source?.fps || 30)}
@@ -679,7 +679,7 @@ export const Timeline = memo(function Timeline({
                     <button
                       className="trim-handle trim-handle-start"
                       type="button"
-                      aria-label="Videó elejének trimelése"
+                      aria-label="Trim video start"
                       data-no-seek
                       disabled={tool === "razor"}
                       onKeyDown={(event) =>
@@ -695,7 +695,7 @@ export const Timeline = memo(function Timeline({
                     <button
                       className="trim-handle trim-handle-end"
                       type="button"
-                      aria-label="Videó végének trimelése"
+                      aria-label="Trim video end"
                       data-no-seek
                       disabled={tool === "razor"}
                       onKeyDown={(event) =>
@@ -744,12 +744,12 @@ export const Timeline = memo(function Timeline({
                 onSelectClip(clipId);
                 setDraggingAudioId(null);
                 setAudioDropTimeUs(null);
-                onAnnounce("Hangsáv pozíciója megváltozott.");
+                onAnnounce("Audio track position changed.");
               }}
             >
               {positionedAudio.length === 0 ? (
                 <span className="audio-track-empty">
-                  MP3 vagy leválasztott hang ide kerül
+                  MP3 or detached audio goes here
                 </span>
               ) : null}
               {positionedAudio.map((clip, index) => {
@@ -790,9 +790,9 @@ export const Timeline = memo(function Timeline({
                       className="clip-body"
                       type="button"
                       draggable={tool === "select"}
-                      aria-label={`${index + 1}. hangklip, ${source?.name ?? "ismeretlen"}, ${formatDuration(
+                      aria-label={`Audio clip ${index + 1}, ${source?.name ?? "unknown"}, ${formatDuration(
                         clipPlaybackDurationUs(clip),
-                      )}, ${clip.speed}×${clip.muted ? ", némítva" : ""}`}
+                      )}, ${clip.speed}×${clip.muted ? ", muted" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         const timeUs = timeFromClientX(event.clientX);
@@ -837,7 +837,7 @@ export const Timeline = memo(function Timeline({
                         ))}
                       </div>
                       <div className="clip-copy">
-                        <strong>{source?.name ?? "Hang"}</strong>
+                        <strong>{source?.name ?? "Audio"}</strong>
                         <span>
                           {Math.round(clip.volume * 100)}% · {clip.speed}×
                         </span>
@@ -853,7 +853,7 @@ export const Timeline = memo(function Timeline({
                     <button
                       className="trim-handle trim-handle-start"
                       type="button"
-                      aria-label="Hang elejének trimelése"
+                      aria-label="Trim audio start"
                       data-no-seek
                       disabled={tool === "razor"}
                       onKeyDown={(event) =>
@@ -869,7 +869,7 @@ export const Timeline = memo(function Timeline({
                     <button
                       className="trim-handle trim-handle-end"
                       type="button"
-                      aria-label="Hang végének trimelése"
+                      aria-label="Trim audio end"
                       data-no-seek
                       disabled={tool === "razor"}
                       onKeyDown={(event) =>
@@ -917,8 +917,8 @@ export const Timeline = memo(function Timeline({
             <Icon name="film" size={25} />
             <i aria-hidden="true">+</i>
           </span>
-          <strong>Húzd ide a videókat vagy zenéket</strong>
-          <span>több fájl egyszerre is jöhet</span>
+          <strong>Drop videos or music here</strong>
+          <span>you can add multiple files at once</span>
           <small>MP4, MOV, MKV, WebM, MP3, WAV, M4A</small>
         </button>
       ) : null}
@@ -927,8 +927,8 @@ export const Timeline = memo(function Timeline({
         <div className="drop-overlay" aria-live="polite">
           <div>
             <Icon name="film" size={30} />
-            <strong>Engedd el a timeline-on</strong>
-            <span>Videók a V1 végére, hangok az A1 sávra kerülnek.</span>
+            <strong>Drop onto the timeline</strong>
+            <span>Videos go at the end of V1; audio goes on A1.</span>
           </div>
         </div>
       ) : null}
@@ -937,7 +937,7 @@ export const Timeline = memo(function Timeline({
         <div
           className="context-menu"
           role="menu"
-          aria-label="Klip műveletek"
+          aria-label="Clip actions"
           style={{ left: contextMenu.x, top: contextMenu.y }}
           data-no-seek
           onPointerDown={(event) => event.stopPropagation()}
@@ -951,7 +951,7 @@ export const Timeline = memo(function Timeline({
             }}
           >
             <Icon name="scissors" size={16} />
-            Vágás itt
+            Cut here
             <kbd>S</kbd>
           </button>
           {menuClip.kind === "video" &&
@@ -966,7 +966,7 @@ export const Timeline = memo(function Timeline({
               }}
             >
               <Icon name="unlink" size={16} />
-              Hang leválasztása
+              Detach audio
               <kbd />
             </button>
           ) : null}
@@ -979,7 +979,7 @@ export const Timeline = memo(function Timeline({
             }}
           >
             <Icon name={menuClip.muted ? "volume" : "mute"} size={16} />
-            {menuClip.muted ? "Hang vissza" : "Klip némítása"}
+            {menuClip.muted ? "Unmute" : "Mute clip"}
             <kbd>M</kbd>
           </button>
           {menuClip.kind === "video" ? (
@@ -1000,7 +1000,7 @@ export const Timeline = memo(function Timeline({
                 }}
               >
                 <Icon name="back" size={16} />
-                Mozgatás eggyel előrébb
+                Move one position earlier
                 <kbd>Alt+←</kbd>
               </button>
               <button
@@ -1019,7 +1019,7 @@ export const Timeline = memo(function Timeline({
                 }}
               >
                 <Icon name="forward" size={16} />
-                Mozgatás eggyel hátrébb
+                Move one position later
                 <kbd>Alt+→</kbd>
               </button>
             </>
@@ -1034,7 +1034,7 @@ export const Timeline = memo(function Timeline({
             }}
           >
             <Icon name="trash" size={16} />
-            Klip törlése
+            Delete clip
             <kbd>Del</kbd>
           </button>
         </div>

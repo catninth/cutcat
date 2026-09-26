@@ -73,16 +73,16 @@ export const Inspector = memo(function Inspector({
   const fps = selectedMedia?.fps || 30;
 
   return (
-    <aside className="inspector" aria-label="Tulajdonságok és export">
+    <aside className="inspector" aria-label="Properties and export">
       <header className="inspector-header">
-        <span>TULAJDONSÁGOK</span>
+        <span>PROPERTIES</span>
         <Icon name="info" size={17} />
       </header>
 
       <div className="inspector-scroll">
         <section className="inspector-section">
           <div className="section-heading-row">
-            <h2>Média</h2>
+            <h2>Media</h2>
             <span>{sources.length}</span>
           </div>
           {sources.length > 0 ? (
@@ -103,7 +103,7 @@ export const Inspector = memo(function Inspector({
                   <div>
                     <strong title={source.name}>{source.name}</strong>
                     <span>
-                      {source.kind === "audio" ? "Hang" : "Videó"} ·{" "}
+                      {source.kind === "audio" ? "Audio" : "Video"} ·{" "}
                       {formatBytes(source.sizeBytes)}
                     </span>
                   </div>
@@ -111,50 +111,50 @@ export const Inspector = memo(function Inspector({
               ))}
             </div>
           ) : (
-            <p className="inspector-empty">Nincs betöltött média.</p>
+            <p className="inspector-empty">No media loaded.</p>
           )}
 
           {selectedMedia ? (
             <dl className="property-grid source-properties">
               {selectedMedia.hasVideo ? (
                 <>
-                  <dt>Felbontás</dt>
+                  <dt>Resolution</dt>
                   <dd>
                     {selectedMedia.width} × {selectedMedia.height}
                   </dd>
-                  <dt>Képfrissítés</dt>
+                  <dt>Frame rate</dt>
                   <dd>
                     {selectedMedia.fps.toFixed(
                       selectedMedia.fps % 1 ? 2 : 0,
                     )}{" "}
                     fps
                   </dd>
-                  <dt>Videó</dt>
+                  <dt>Video</dt>
                   <dd>{selectedMedia.videoCodec ?? "—"}</dd>
                 </>
               ) : null}
-              <dt>Hang</dt>
-              <dd>{selectedMedia.audioCodec ?? "nincs"}</dd>
-              <dt>Hossz</dt>
+              <dt>Audio</dt>
+              <dd>{selectedMedia.audioCodec ?? "none"}</dd>
+              <dt>Duration</dt>
               <dd>{formatDuration(selectedMedia.durationUs)}</dd>
             </dl>
           ) : null}
         </section>
 
         <section className="inspector-section clip-inspector">
-          <h2>Kijelölt klip</h2>
+          <h2>Selected clip</h2>
           {selected ? (
             <>
               <dl className="property-grid">
-                <dt>Típus</dt>
-                <dd>{selected.kind === "video" ? "V1 videó" : "A1 hang"}</dd>
-                <dt>Forrás kezdete</dt>
+                <dt>Type</dt>
+                <dd>{selected.kind === "video" ? "V1 video" : "A1 audio"}</dd>
+                <dt>Source start</dt>
                 <dd>{formatTimecode(selected.sourceInUs, fps)}</dd>
-                <dt>Forrás vége</dt>
+                <dt>Source end</dt>
                 <dd>{formatTimecode(selected.sourceOutUs, fps)}</dd>
-                <dt>Timeline hossz</dt>
+                <dt>Timeline duration</dt>
                 <dd>{formatTimecode(clipPlaybackDurationUs(selected), fps)}</dd>
-                <dt>Timeline pozíció</dt>
+                <dt>Timeline position</dt>
                 <dd>
                   {formatTimecode(
                     getClipProjectStartUs(project, selected.id),
@@ -165,7 +165,7 @@ export const Inspector = memo(function Inspector({
 
               <div className="clip-control-grid">
                 <label className="field">
-                  <span>Sebesség</span>
+                  <span>Speed</span>
                   <select
                     name="clip-speed"
                     value={selected.speed}
@@ -184,10 +184,10 @@ export const Inspector = memo(function Inspector({
                 </label>
 
                 <div className="field">
-                  <span>Hangerő</span>
+                  <span>Volume</span>
                   <div className="inspector-volume-row">
                     <input
-                      aria-label="Kijelölt klip hangereje"
+                      aria-label="Selected clip volume"
                       disabled={!selectedHasAudio}
                       max="1"
                       min="0"
@@ -218,7 +218,7 @@ export const Inspector = memo(function Inspector({
                   }
                 >
                   <Icon name={selected.muted ? "mute" : "volume"} size={17} />
-                  {selected.muted ? "Hang visszakapcsolása" : "Klip némítása"}
+                  {selected.muted ? "Unmute" : "Mute clip"}
                 </button>
 
                 {canDetach ? (
@@ -228,20 +228,20 @@ export const Inspector = memo(function Inspector({
                     onClick={() => onDetachAudio(selected.id)}
                   >
                     <Icon name="unlink" size={17} />
-                    Hang leválasztása az A1-re
+                    Detach audio to A1
                   </button>
                 ) : null}
 
                 {selected.kind === "video" && selected.audioDetached ? (
                   <p className="clip-control-note">
-                    Hang leválasztva. Az A1 klip külön szerkeszthető.
+                    Audio detached. The A1 clip can be edited separately.
                   </p>
                 ) : null}
               </div>
             </>
           ) : (
             <p className="inspector-empty">
-              Válassz klipet a hangerő és sebesség beállításához.
+              Select a clip to adjust its volume and speed.
             </p>
           )}
         </section>
@@ -253,7 +253,7 @@ export const Inspector = memo(function Inspector({
           </div>
 
           <label className="field">
-            <span>Minőség</span>
+            <span>Quality</span>
             <select
               name="export-quality"
               value={exportSettings.preset}
@@ -265,14 +265,14 @@ export const Inspector = memo(function Inspector({
                 })
               }
             >
-              <option value="fast">Gyors · CRF 23</option>
-              <option value="balanced">Kiegyensúlyozott · CRF 20</option>
-              <option value="quality">Magas minőség · CRF 18</option>
+              <option value="fast">Fast · CRF 23</option>
+              <option value="balanced">Balanced · CRF 20</option>
+              <option value="quality">High quality · CRF 18</option>
             </select>
           </label>
 
           <label className="field">
-            <span>Felbontás</span>
+            <span>Resolution</span>
             <select
               name="export-resolution"
               value={exportSettings.resolution}
@@ -291,7 +291,7 @@ export const Inspector = memo(function Inspector({
                 });
               }}
             >
-              <option value="source">Projekt / első videó</option>
+              <option value="source">Project / first video</option>
               <option value="1080">1080p maximum</option>
               <option value="720">720p maximum</option>
             </select>
@@ -301,7 +301,7 @@ export const Inspector = memo(function Inspector({
             className="mode-choice"
             disabled={project.videoClips.length === 0 || exporting}
           >
-            <legend>Vágási pontosság</legend>
+            <legend>Cut accuracy</legend>
             <label>
               <input
                 type="radio"
@@ -316,8 +316,8 @@ export const Inspector = memo(function Inspector({
                 }
               />
               <span>
-                <strong>Pontos</strong>
-                <small>Több forrás, hangkeverés, sebesség</small>
+                <strong>Accurate</strong>
+                <small>Multiple sources, audio mixing, speed</small>
               </span>
             </label>
             <label className={!canFastCopy ? "is-disabled" : ""}>
@@ -335,8 +335,8 @@ export const Inspector = memo(function Inspector({
                 }
               />
               <span>
-                <strong>Gyors másolás</strong>
-                <small>Csak egy változatlan kliphez</small>
+                <strong>Fast copy</strong>
+                <small>For a single unmodified clip only</small>
               </span>
             </label>
           </fieldset>
@@ -348,7 +348,7 @@ export const Inspector = memo(function Inspector({
             onClick={onExport}
           >
             <Icon name="export" />
-            {exporting ? "Export folyamatban…" : "Videó exportálása"}
+            {exporting ? "Exporting…" : "Export video"}
           </button>
         </section>
       </div>

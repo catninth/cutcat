@@ -58,7 +58,7 @@ const idleExportStatus: ExportStatus = {
 function cleanError(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
-  return "Ismeretlen hiba történt.";
+  return "An unknown error occurred.";
 }
 
 function suggestedExportName(sources: MediaSource[]): string {
@@ -210,7 +210,7 @@ export default function App() {
     async (paths: string[]) => {
       const accepted = paths.filter(isMediaPath);
       if (accepted.length === 0) {
-        notify("Nem támogatott fájl. Videót vagy hangfájlt válassz.");
+        notify("Unsupported file. Choose a video or audio file.");
         return;
       }
       setImporting(true);
@@ -225,8 +225,8 @@ export default function App() {
         const failed = results.length - imported.length;
         notify(
           failed > 0
-            ? `${imported.length} média betöltve, ${failed} sikertelen.`
-            : `${imported.length} média betöltve.`,
+            ? `${imported.length} media files loaded, ${failed} failed.`
+            : `${imported.length} media files loaded.`,
         );
       } catch (error) {
         notify(cleanError(error));
@@ -241,7 +241,7 @@ export default function App() {
     async (files: File[]) => {
       const accepted = files.filter(isMediaFile);
       if (accepted.length === 0) {
-        notify("Nem támogatott fájl. Videót vagy hangfájlt válassz.");
+        notify("Unsupported file. Choose a video or audio file.");
         return;
       }
       setImporting(true);
@@ -256,8 +256,8 @@ export default function App() {
         const failed = results.length - imported.length;
         notify(
           failed > 0
-            ? `${imported.length} média betöltve, ${failed} sikertelen.`
-            : `${imported.length} média betöltve. Natív exporthoz indítsd Tauri alatt.`,
+            ? `${imported.length} media files loaded, ${failed} failed.`
+            : `${imported.length} media files loaded. Run in Tauri for native export.`,
         );
       } catch (error) {
         notify(cleanError(error));
@@ -333,12 +333,12 @@ export default function App() {
         new Map(sourcesRef.current.map((source) => [source.id, source])),
       );
       if (!next) {
-        notify("A vágási pont legyen a klip belsejében, legalább egy frame-re a széltől.");
+        notify("The cut point must be inside the clip, at least one frame from either edge.");
         return;
       }
       setPlaying(false);
       commitProject(next);
-      notify("Klip elvágva.");
+      notify("Clip split.");
     },
     [commitProject, getProject, notify],
   );
@@ -351,7 +351,7 @@ export default function App() {
       setSelectedClipId(
         next.videoClips[0]?.id ?? next.audioClips[0]?.id ?? null,
       );
-      notify("Klip törölve. Ctrl+Z-vel visszavonható.");
+      notify("Clip deleted. Press Ctrl+Z to undo.");
     },
     [commitProject, getProject, notify],
   );
@@ -362,18 +362,18 @@ export default function App() {
         (item) => item.id === getClip(getProject(), clipId)?.mediaId,
       );
       if (!source?.hasAudio) {
-        notify("Ez a klip nem tartalmaz leválasztható hangot.");
+        notify("This clip has no audio to detach.");
         return;
       }
       const result = detachAudio(getProject(), clipId);
       if (!result) {
-        notify("A hang már le van választva.");
+        notify("Audio is already detached.");
         return;
       }
       setPlaying(false);
       commitProject(result.project);
       setSelectedClipId(result.audioClipId);
-      notify("Hang leválasztva az A1 sávra.");
+      notify("Audio detached to the A1 track.");
     },
     [commitProject, getProject, notify],
   );
@@ -502,7 +502,7 @@ export default function App() {
       !isNativeRuntime() ||
       referencedSources.some((source) => !source.canExport || !source.path)
     ) {
-      notify("Export csak a natív CutCat alkalmazásban érhető el.");
+      notify("Export is only available in the native CutCat app.");
       return;
     }
 
@@ -609,15 +609,15 @@ export default function App() {
 
   const projectTitle =
     sources.length === 0
-      ? "Névtelen projekt"
+      ? "Untitled project"
       : sources.length === 1
         ? sources[0].name
-        : `${sources.length} médiaelem`;
+        : `${sources.length} media items`;
 
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-workspace">
-        Ugrás az előnézethez
+        Skip to preview
       </a>
       <header className="app-header">
         <h1 className="brand" aria-label="CutCat">
@@ -630,20 +630,20 @@ export default function App() {
         <div className="project-identity">
           <span className={hasClips ? "status-dot is-ready" : "status-dot"} />
           <strong>{projectTitle}</strong>
-          <small>{hasClips ? "Helyi projekt" : "Nincs mentve"}</small>
+          <small>{hasClips ? "Local project" : "Not saved"}</small>
         </div>
 
         <div className="header-actions">
           <button className="header-button" type="button" onClick={openFile}>
             <Icon name="folder" />
-            Média hozzáadása
+            Add media
           </button>
           <span className="header-divider" />
           <button
             className="icon-button"
             type="button"
-            aria-label="Visszavonás"
-            title="Visszavonás (Ctrl+Z)"
+            aria-label="Undo"
+            title="Undo (Ctrl+Z)"
             disabled={!canUndo || exporting}
             onClick={() => {
               setPlaying(false);
@@ -655,8 +655,8 @@ export default function App() {
           <button
             className="icon-button"
             type="button"
-            aria-label="Újra"
-            title="Újra (Ctrl+Shift+Z)"
+            aria-label="Redo"
+            title="Redo (Ctrl+Shift+Z)"
             disabled={!canRedo || exporting}
             onClick={() => {
               setPlaying(false);
@@ -730,7 +730,7 @@ export default function App() {
         ref={fileInputRef}
         className="visually-hidden"
         type="file"
-        aria-label="Videó- és hangfájlok kiválasztása"
+        aria-label="Choose video and audio files"
         accept="video/*,audio/*,.mkv,.mts,.m2ts,.flac,.opus"
         multiple
         tabIndex={-1}
@@ -744,7 +744,7 @@ export default function App() {
       {importing ? (
         <div className="busy-indicator" role="status">
           <span />
-          Média elemzése…
+          Analyzing media…
         </div>
       ) : null}
 
@@ -778,19 +778,19 @@ export default function App() {
               <div>
                 <h2 id="export-title">
                   {exportStatus.phase === "running"
-                    ? "Videó exportálása"
+                    ? "Export video"
                     : exportStatus.phase === "completed"
-                      ? "Export kész"
+                      ? "Export complete"
                       : exportStatus.phase === "cancelled"
-                        ? "Export megszakítva"
-                        : "Export sikertelen"}
+                        ? "Export canceled"
+                        : "Export failed"}
                 </h2>
                 <p>
                   {exportStatus.phase === "running"
-                    ? "FFmpeg összerakja a videó- és hangsávokat."
+                    ? "FFmpeg is assembling the video and audio tracks."
                     : exportStatus.outputPath ??
                       exportStatus.message ??
-                      "Nem készült kimeneti fájl."}
+                      "No output file was created."}
                 </p>
               </div>
             </header>
@@ -800,7 +800,7 @@ export default function App() {
                 <div
                   className="progress-track"
                   role="progressbar"
-                  aria-label="Export előrehaladása"
+                  aria-label="Export progress"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Math.round(exportStatus.progress * 100)}
@@ -816,7 +816,7 @@ export default function App() {
                 </div>
                 <div className="progress-meta">
                   <strong>{Math.round(exportStatus.progress * 100)}%</strong>
-                  <span>{exportStatus.speed ?? "előkészítés"}</span>
+                  <span>{exportStatus.speed ?? "preparing"}</span>
                 </div>
                 <button
                   className="secondary-button"
@@ -824,7 +824,7 @@ export default function App() {
                   disabled={!exportStatus.jobId}
                   onClick={requestCancelExport}
                 >
-                  Megszakítás
+                  Cancel
                 </button>
               </>
             ) : (
@@ -833,7 +833,7 @@ export default function App() {
                 type="button"
                 onClick={() => setExportStatus(idleExportStatus)}
               >
-                Bezárás
+                Close
               </button>
             )}
           </section>

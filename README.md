@@ -1,35 +1,35 @@
 # CutCat
 
-Gyors, fókuszált desktop videóvágó React, Tauri 2 és FFmpeg alapon.
+A fast, focused desktop video editor built with React, Tauri 2, and FFmpeg.
 
-CutCat 0.2 több videó- és hangforrást kezel magnetic V1 videosávon és szabadon pozicionálható A1 hangsávon. A szerkesztés non-destructive: a forrásfájl nem változik, csak a klipek sorrendje és beállításai.
+CutCat 0.2 handles multiple video and audio sources on a magnetic V1 video track and a freely positioned A1 audio track. Editing is non-destructive: source files remain unchanged; only clip order and settings change.
 
-## Kész funkciók
+## Implemented features
 
-- több videó és MP3/hang drag-and-drop közvetlenül a timeline-ra;
-- `ffprobe` metadata: hossz, felbontás, fps, video- és audiokodek;
-- frame-pontos playhead, preview és frame-step;
-- javított kétoldali trim: bal fogantyú húzásakor a bal klipszél mozog;
-- valódi Kijelölés (`V`) és Vágás (`C`) timeline-eszköz;
-- split jobb klikkből, toolbarból vagy `S`-sel, natív böngészőmenü nélkül;
-- videók drag-and-drop sorrendezése, hangsávok szabad mozgatása;
-- klipszintű hangerő, némítás és 0.25×–4× sebesség;
-- videóhang leválasztása külön, vágható A1 klippé;
-- ripple delete, undo/redo, timeline zoom és fit;
-- többforrásos H.264/AAC MP4 export, normalizált képméret és hangkeverés;
-- opcionális gyors stream-copy egyetlen szegmenshez;
-- FFmpeg progress, megszakítás és biztonságos partial-output;
-- böngészős frontend fallback gyors UI-fejlesztéshez.
+- drag and drop multiple videos and MP3/audio files directly onto the timeline;
+- `ffprobe` metadata: duration, resolution, fps, and video/audio codecs;
+- frame-accurate playhead, preview, and frame stepping;
+- corrected two-sided trimming: dragging the left handle moves the left clip edge;
+- dedicated Select (`V`) and Cut (`C`) timeline tools;
+- split from the context menu, toolbar, or `S`, without the native browser menu;
+- drag and drop to reorder videos and move audio clips freely;
+- per-clip volume, mute, and 0.25×–4× speed;
+- detach video audio into a separate, trimmable A1 clip;
+- ripple delete, undo/redo, timeline zoom, and fit;
+- multi-source H.264/AAC MP4 export with normalized frame dimensions and audio mixing;
+- optional fast stream copy for a single segment;
+- FFmpeg progress, cancellation, and safe partial output;
+- browser frontend fallback for fast UI development.
 
-A kutatás, UX-döntések, FFmpeg filtergraph és architektúra: [docs/RESEARCH.md](docs/RESEARCH.md).
+Research, UX decisions, FFmpeg filtergraphs, and architecture: [docs/RESEARCH.md](docs/RESEARCH.md).
 
-## Indítás
+## Getting started
 
-Szükséges:
+Requirements:
 
-- Node.js 24 vagy újabb;
+- Node.js 24 or later;
 - Rust stable;
-- Windows alatt a `stable-x86_64-pc-windows-msvc` toolchain, Visual Studio Build Tools „Desktop development with C++” workload és Windows SDK;
+- on Windows: the `stable-x86_64-pc-windows-msvc` toolchain, Visual Studio Build Tools with the “Desktop development with C++” workload, and the Windows SDK;
 - WebView2 Runtime.
 
 ```powershell
@@ -37,44 +37,44 @@ npm install
 npm run tauri:dev
 ```
 
-Az `npm install` a platformhoz illő FFmpeg és ffprobe sidecart bemásolja a `src-tauri/binaries` könyvtárba target-triple névvel.
+`npm install` copies the platform-specific FFmpeg and ffprobe sidecars into `src-tauri/binaries` with target-triple filenames.
 
-Csak a React UI:
+To run only the React UI:
 
 ```powershell
 npm run dev
 ```
 
-A böngészős mód importot, preview-t és timeline-szerkesztést ad. Natív fájlpath hiányában exportot nem indít.
+Browser mode supports importing, previewing, and timeline editing. Export requires native file paths and is unavailable in this mode.
 
-## Használat
+## Usage
 
-1. Húzz egy vagy több videót/MP3-at a timeline-ra.
-2. `Kijelölés` módban jelölj, trimelj és rendezd át a klipeket.
-3. `Vágás` módban kattints a kívánt klippontba.
-4. Jobb klikk egy videón → `Hang leválasztása`, ha külön A1 klip kell.
-5. Állíts sebességet, hangerőt vagy némítást a kijelölt kliphez.
-6. Válassz exportminőséget és felbontást, majd `Export`.
+1. Drop one or more videos/MP3 files onto the timeline.
+2. Use `Select` mode to select, trim, and reorder clips.
+3. Use `Cut` mode to click the desired cut point in a clip.
+4. Right-click a video and choose `Detach audio` to create a separate A1 clip.
+5. Adjust speed, volume, or mute for the selected clip.
+6. Choose export quality and resolution, then select `Export`.
 
-Gyorsbillentyűk:
+Keyboard shortcuts:
 
-| Billentyű | Művelet |
+| Key | Action |
 | --- | --- |
-| `V` | Kijelölés és mozgatás eszköz |
-| `C` | Vágás eszköz |
-| `Space` | Lejátszás / szünet |
-| `S` | Split a playheadnél |
-| `M` | Kijelölt klip némítása |
-| `Alt` + `←` / `→` | Kijelölt videó sorrendjének módosítása |
-| `Delete` / `Backspace` | Kijelölt szegmens ripple törlése |
-| `←` / `→` | 1 frame lépés |
-| `Shift` + `←` / `→` | 5 frame lépés |
+| `V` | Select and move tool |
+| `C` | Cut tool |
+| `Space` | Play / pause |
+| `S` | Split at the playhead |
+| `M` | Mute the selected clip |
+| `Alt` + `←` / `→` | Reorder the selected video |
+| `Delete` / `Backspace` | Ripple delete the selected segment |
+| `←` / `→` | Step by 1 frame |
+| `Shift` + `←` / `→` | Step by 5 frames |
 | `+` / `-` | Timeline zoom |
 | `0` | Timeline fit |
-| `Ctrl/Cmd+Z` | Visszavonás |
-| `Ctrl/Cmd+Shift+Z`, `Ctrl+Y` | Újra |
+| `Ctrl/Cmd+Z` | Undo |
+| `Ctrl/Cmd+Shift+Z`, `Ctrl+Y` | Redo |
 
-## Ellenőrzés és build
+## Checks and builds
 
 ```powershell
 npm test
@@ -84,26 +84,26 @@ npm run tauri:portable
 npm run tauri:build
 ```
 
-Az `npm run tauri:portable` telepítő nélkül készíti el a release `.exe`-t és
-sidecarokat a `src-tauri/target/release` mappában. A teljes telepítőcsomaghoz
-használd a `npm run tauri:build` parancsot.
+`npm run tauri:portable` builds the release `.exe` and
+sidecars in `src-tauri/target/release` without an installer. For the full installer package,
+use `npm run tauri:build`.
 
-## Szerkezet
+## Structure
 
 ```text
 src/
   components/       React editor UI
   hooks/            undo/redo history
-  lib/              timeline matematika, idő és Tauri bridge
-  types/            IPC és editor típusok
+  lib/              timeline math, time, and Tauri bridge
+  types/            IPC and editor types
 src-tauri/
   src/media.rs      canonical import + ffprobe
-  src/export.rs     validálás, filtergraph, progress, cancel
-  capabilities/     minimális Tauri jogosultságok
+  src/export.rs     validation, filtergraph, progress, cancellation
+  capabilities/     minimal Tauri permissions
 scripts/
   prepare-ffmpeg.mjs
 ```
 
-## FFmpeg licenc
+## FFmpeg license
 
-A fejlesztői csomag `ffmpeg-static` és `ffprobe-static` binárist használ. Release előtt kötelező a választott binary build konfigurációjának és licencének auditja. A `libx264`-et tartalmazó GPL FFmpeg build terjesztése GPL-kötelezettségeket hoz; `--enable-nonfree` build nem redisztribuálható. Részletek: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) és [FFmpeg Legal](https://ffmpeg.org/legal.html).
+The development package uses `ffmpeg-static` and `ffprobe-static` binaries. Before a release, audit the selected binary's build configuration and license. Distributing a GPL FFmpeg build containing `libx264` entails GPL obligations; builds with `--enable-nonfree` cannot be redistributed. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [FFmpeg Legal](https://ffmpeg.org/legal.html).

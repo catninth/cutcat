@@ -44,10 +44,10 @@ export async function openMediaPaths(): Promise<string[]> {
   const selection = await open({
     multiple: true,
     directory: false,
-    title: "Média megnyitása",
+    title: "Open media",
     filters: [
       {
-        name: "Videó és hang",
+        name: "Video and audio",
         extensions: [
           "mp4",
           "mov",
@@ -77,9 +77,9 @@ export async function chooseExportPath(
 ): Promise<string | null> {
   const { save } = await import("@tauri-apps/plugin-dialog");
   return save({
-    title: "Videó exportálása",
+    title: "Export video",
     defaultPath: suggestedName,
-    filters: [{ name: "MP4 videó", extensions: ["mp4"] }],
+    filters: [{ name: "MP4 video", extensions: ["mp4"] }],
   });
 }
 
@@ -171,7 +171,7 @@ function readBrowserMetadata(
       element.load();
     };
     element.onerror = () => {
-      reject(new Error("A böngésző nem tudta megnyitni ezt a médiafájlt."));
+      reject(new Error("The browser could not open this media file."));
       element.removeAttribute("src");
       element.load();
     };

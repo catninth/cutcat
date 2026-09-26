@@ -153,12 +153,12 @@ pub async fn start_export(
                 .spec
                 .video_clips
                 .first()
-                .ok_or_else(|| "Az exporthoz videoszegmens kell.".to_owned())?;
+                .ok_or_else(|| "Export requires a video segment.".to_owned())?;
             let input_index = validated
                 .source_inputs
                 .get(&first_clip.media_id)
                 .copied()
-                .ok_or_else(|| "A videoszegmens forrása hiányzik.".to_owned())?;
+                .ok_or_else(|| "The video segment source is missing.".to_owned())?;
             let dimensions = probe_video_dimensions(&app, &validated.inputs[input_index]).await?;
             even_dimensions(dimensions)
         }
@@ -177,10 +177,10 @@ pub async fn start_export(
         let mut jobs = state
             .jobs
             .lock()
-            .map_err(|_| "Az export állapota nem elérhető.".to_owned())?;
+            .map_err(|_| "Export state is unavailable.".to_owned())?;
         if !jobs.children.is_empty() {
             let _ = child.kill();
-            return Err("Már fut egy export.".to_owned());
+            return Err("An export is already running.".to_owned());
         }
         jobs.children.insert(job_id.clone(), child);
     }
@@ -237,7 +237,7 @@ pub async fn start_export(
         let mut jobs = state
             .jobs
             .lock()
-            .map_err(|_| "Az export állapota nem elérhető.".to_owned())?;
+            .map_err(|_| "Export state is unavailable.".to_owned())?;
         jobs.children.remove(&job_id);
         jobs.cancelled.remove(&job_id)
     };
@@ -245,15 +245,15 @@ pub async fn start_export(
     if was_cancelled {
         remove_partial(&validated.partial);
         let _ = on_event.send(ExportEvent::Cancelled);
-        return Err("Az export megszakítva.".to_owned());
+        return Err("Export canceled.".to_owned());
     }
 
     if exit_code != Some(0) || command_error.is_some() {
         remove_partial(&validated.partial);
         let details = command_error
             .or_else(|| errors.iter().rev().find(|line| !line.is_empty()).cloned())
-            .unwrap_or_else(|| format!("FFmpeg kilépési kód: {exit_code:?}"));
-        let message = format!("FFmpeg export hiba: {details}");
+            .unwrap_or_else(|| format!("FFmpeg exit code: {exit_code:?}"));
+        let message = format!("FFmpeg export error: {details}");
         let _ = on_event.send(ExportEvent::Failed {
             message: message.clone(),
         });
@@ -261,18 +261,18 @@ pub async fn start_export(
     }
 
     let output_metadata = std::fs::metadata(&validated.partial)
-        .map_err(|error| format!("A részleges export nem olvasható: {error}"))?;
+        .map_err(|error| format!("Cannot read the partial export: {error}"))?;
     if output_metadata.len() == 0 {
         remove_partial(&validated.partial);
-        return Err("FFmpeg üres kimeneti fájlt készített.".to_owned());
+        return Err("FFmpeg produced an empty output file.".to_owned());
     }
 
     if validated.output.exists() {
         std::fs::remove_file(&validated.output)
-            .map_err(|error| format!("A meglévő kimenet nem írható felül: {error}"))?;
+            .map_err(|error| format!("Cannot overwrite the existing output: {error}"))?;
     }
     std::fs::rename(&validated.partial, &validated.output)
-        .map_err(|error| format!("Az export nem véglegesíthető: {error}"))?;
+        .map_err(|error| format!("Cannot finalize the export: {error}"))?;
 
     let output_path = validated.output.to_string_lossy().into_owned();
     let _ = on_event.send(ExportEvent::Completed {
@@ -287,18 +287,18 @@ pub fn cancel_export(state: State<'_, ExportState>, job_id: String) -> Result<()
         let mut jobs = state
             .jobs
             .lock()
-            .map_err(|_| "Az export állapota nem elérhető.".to_owned())?;
+            .map_err(|_| "Export state is unavailable.".to_owned())?;
         let child = jobs
             .children
             .remove(&job_id)
-            .ok_or_else(|| "Az export folyamat már nem fut.".to_owned())?;
+            .ok_or_else(|| "The export process is no longer running.".to_owned())?;
         jobs.cancelled.insert(job_id);
         child
     };
 
     child
         .kill()
-        .map_err(|error| format!("Az FFmpeg folyamat nem állítható le: {error}"))
+        .map_err(|error| format!("Cannot stop the FFmpeg process: {error}"))
 }
 
 struct ValidatedExport {
@@ -311,25 +311,25 @@ struct ValidatedExport {
 
 fn validate_spec(spec: ExportSpec) -> Result<ValidatedExport, String> {
     if spec.sources.is_empty() {
-        return Err("Az exporthoz legalább egy forrás kell.".to_owned());
+        return Err("Export requires at least one source.".to_owned());
     }
     if spec.sources.len() > MAX_SOURCES {
-        return Err("Túl sok médiaforrás az exporthoz.".to_owned());
+        return Err("Too many media sources for export.".to_owned());
     }
     if spec.video_clips.is_empty() {
-        return Err("Az exporthoz legalább egy videoszegmens kell.".to_owned());
+        return Err("Export requires at least one video segment.".to_owned());
     }
     if spec.video_clips.len() + spec.audio_clips.len() > MAX_CLIPS {
-        return Err("Túl sok szegmens az exporthoz.".to_owned());
+        return Err("Too many segments for export.".to_owned());
     }
 
     let mut source_by_id = HashMap::with_capacity(spec.sources.len());
     for source in &spec.sources {
         if source.id.trim().is_empty() {
-            return Err("Hiányzó médiaforrás-azonosító.".to_owned());
+            return Err("Missing media source ID.".to_owned());
         }
         if source_by_id.insert(source.id.as_str(), source).is_some() {
-            return Err(format!("Duplikált médiaforrás: {}", source.id));
+            return Err(format!("Duplicate media source: {}", source.id));
         }
     }
 
@@ -343,16 +343,16 @@ fn validate_spec(spec: ExportSpec) -> Result<ValidatedExport, String> {
         )?;
         let source = source_by_id
             .get(clip.media_id.as_str())
-            .ok_or_else(|| format!("Hiányzó videóforrás: {}", clip.media_id))?;
+            .ok_or_else(|| format!("Missing video source: {}", clip.media_id))?;
         if !source.has_video {
             return Err(format!(
-                "A médiaforrás nem tartalmaz videosávot: {}",
+                "The media source has no video stream: {}",
                 clip.media_id
             ));
         }
         if clip.include_audio && !source.has_audio {
             return Err(format!(
-                "A médiaforrás nem tartalmaz audiosávot: {}",
+                "The media source has no audio stream: {}",
                 clip.media_id
             ));
         }
@@ -366,14 +366,14 @@ fn validate_spec(spec: ExportSpec) -> Result<ValidatedExport, String> {
             clip.volume,
         )?;
         if clip.timeline_start_us < 0 {
-            return Err("Az audioszegmens timeline-pozíciója nem lehet negatív.".to_owned());
+            return Err("The audio segment timeline position cannot be negative.".to_owned());
         }
         let source = source_by_id
             .get(clip.media_id.as_str())
-            .ok_or_else(|| format!("Hiányzó audioforrás: {}", clip.media_id))?;
+            .ok_or_else(|| format!("Missing audio source: {}", clip.media_id))?;
         if !source.has_audio {
             return Err(format!(
-                "A médiaforrás nem tartalmaz audiosávot: {}",
+                "The media source has no audio stream: {}",
                 clip.media_id
             ));
         }
@@ -383,7 +383,7 @@ fn validate_spec(spec: ExportSpec) -> Result<ValidatedExport, String> {
     timeline_duration_us(&spec.video_clips)?;
     if spec.mode == ExportMode::FastCopy && !fast_copy_compatible(&spec) {
         return Err(
-            "Gyors másolás csak egy 1× sebességű videoszegmenshez, külső hangsáv és átméretezés nélkül használható."
+            "Fast copy requires a single video segment at 1× speed, with no external audio or resizing."
                 .to_owned(),
         );
     }
@@ -409,13 +409,13 @@ fn validate_spec(spec: ExportSpec) -> Result<ValidatedExport, String> {
 
     let requested_output = Path::new(&spec.output_path);
     if !requested_output.is_absolute() {
-        return Err("A kimenethez abszolút útvonal kell.".to_owned());
+        return Err("The output requires an absolute path.".to_owned());
     }
     let parent = requested_output
         .parent()
-        .ok_or_else(|| "A kimeneti mappa hiányzik.".to_owned())?
+        .ok_or_else(|| "The output folder is missing.".to_owned())?
         .canonicalize()
-        .map_err(|error| format!("A kimeneti mappa nem érhető el: {error}"))?;
+        .map_err(|error| format!("Cannot access the output folder: {error}"))?;
     let file_stem = requested_output
         .file_stem()
         .and_then(|stem| stem.to_str())
@@ -424,7 +424,7 @@ fn validate_spec(spec: ExportSpec) -> Result<ValidatedExport, String> {
     let output = parent.join(format!("{file_stem}.mp4"));
 
     if inputs.iter().any(|input| input == &output) {
-        return Err("A forrásfájl nem írható felül.".to_owned());
+        return Err("The source file cannot be overwritten.".to_owned());
     }
 
     let partial = parent.join(format!(".{file_stem}.{}.partial.mp4", Uuid::new_v4()));
@@ -445,18 +445,18 @@ fn validate_clip_range(
     volume: f64,
 ) -> Result<(), String> {
     if source_in_us < 0 || source_out_us <= source_in_us {
-        return Err("Érvénytelen szegmens-időtartomány.".to_owned());
+        return Err("Invalid segment time range.".to_owned());
     }
     if !speed.is_finite() || !(MIN_SPEED..=MAX_SPEED).contains(&speed) {
         return Err(format!(
-            "A sebesség {MIN_SPEED}× és {MAX_SPEED}× között lehet."
+            "Speed must be between {MIN_SPEED}× and {MAX_SPEED}×."
         ));
     }
     if !volume.is_finite() || !(0.0..=MAX_VOLUME).contains(&volume) {
-        return Err(format!("A hangerő 0 és {MAX_VOLUME} között lehet."));
+        return Err(format!("Volume must be between 0 and {MAX_VOLUME}."));
     }
     if playback_duration_us(source_in_us, source_out_us, speed)? <= 0 {
-        return Err("A szegmens lejátszási hossza túl rövid.".to_owned());
+        return Err("The segment playback duration is too short.".to_owned());
     }
     Ok(())
 }
@@ -497,7 +497,7 @@ fn build_arguments(
         let input_index = source_inputs
             .get(&clip.media_id)
             .copied()
-            .ok_or_else(|| "A gyors export forrása hiányzik.".to_owned())?;
+            .ok_or_else(|| "The fast export source is missing.".to_owned())?;
         arguments.extend([
             "-ss".to_owned(),
             seconds(clip.source_in_us),
@@ -612,7 +612,7 @@ fn build_filtergraph(
                 clip.source_out_us,
                 clip.speed,
             )?)
-            .ok_or_else(|| "A timeline hossza túl nagy.".to_owned())?;
+            .ok_or_else(|| "The timeline duration is too long.".to_owned())?;
     }
     for clip in &spec.audio_clips {
         if !clip.muted && clip.volume > 0.0 && clip.timeline_start_us < duration_us {
@@ -754,14 +754,14 @@ fn take_pad(
 ) -> Result<String, String> {
     pads.get_mut(&input_index)
         .and_then(VecDeque::pop_front)
-        .ok_or_else(|| format!("Hiányzó {stream_name} filter bemenet."))
+        .ok_or_else(|| format!("Missing {stream_name} filter input."))
 }
 
 fn input_index(source_inputs: &HashMap<String, usize>, media_id: &str) -> Result<usize, String> {
     source_inputs
         .get(media_id)
         .copied()
-        .ok_or_else(|| format!("Hiányzó médiaforrás: {media_id}"))
+        .ok_or_else(|| format!("Missing media source: {media_id}"))
 }
 
 fn timeline_duration_us(clips: &[ExportVideoClip]) -> Result<i64, String> {
@@ -772,14 +772,14 @@ fn timeline_duration_us(clips: &[ExportVideoClip]) -> Result<i64, String> {
                 clip.source_out_us,
                 clip.speed,
             )?)
-            .ok_or_else(|| "A timeline hossza túl nagy.".to_owned())
+            .ok_or_else(|| "The timeline duration is too long.".to_owned())
     })
 }
 
 fn playback_duration_us(source_in_us: i64, source_out_us: i64, speed: f64) -> Result<i64, String> {
     let duration = (source_out_us - source_in_us) as f64 / speed;
     if !duration.is_finite() || duration <= 0.0 || duration > i64::MAX as f64 {
-        return Err("Érvénytelen lejátszási idő.".to_owned());
+        return Err("Invalid playback time.".to_owned());
     }
     Ok(duration.round() as i64)
 }
@@ -787,7 +787,7 @@ fn playback_duration_us(source_in_us: i64, source_out_us: i64, speed: f64) -> Re
 fn timeline_delay_samples(timeline_start_us: i64) -> Result<i64, String> {
     let samples = timeline_start_us as f64 * AUDIO_SAMPLE_RATE as f64 / 1_000_000.0;
     if !samples.is_finite() || samples < 0.0 || samples > i64::MAX as f64 {
-        return Err("Érvénytelen audio timeline-pozíció.".to_owned());
+        return Err("Invalid audio timeline position.".to_owned());
     }
     Ok(samples.round() as i64)
 }
@@ -849,7 +849,7 @@ fn spawn_ffmpeg(
         .spawn()
         .map_err(|path_error| {
             format!(
-                "FFmpeg nem indítható. Futtasd az `npm run ffmpeg:prepare` parancsot. Sidecar: {sidecar_error}; PATH: {path_error}"
+                "Cannot start FFmpeg. Run `npm run ffmpeg:prepare`. Sidecar: {sidecar_error}; PATH: {path_error}"
             )
         })
 }

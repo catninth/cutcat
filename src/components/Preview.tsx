@@ -200,14 +200,14 @@ export const Preview = memo(function Preview({
   };
 
   return (
-    <section className="preview-panel" aria-label="Videó előnézet">
+    <section className="preview-panel" aria-label="Video preview">
       <div className="preview-stage">
         {activeMedia?.hasVideo ? (
           <button
             className="preview-media-button"
             type="button"
             aria-label={
-              playing ? "Előnézet szüneteltetése" : "Előnézet lejátszása"
+              playing ? "Pause preview" : "Play preview"
             }
             onClick={togglePlayback}
           >
@@ -238,13 +238,13 @@ export const Preview = memo(function Preview({
             </div>
             <p>
               {project.audioClips.length > 0
-                ? "Hangprojekt"
-                : "Előnézet"}
+                ? "Audio project"
+                : "Preview"}
             </p>
             <span>
               {project.audioClips.length > 0
-                ? "Adj videót a V1 sávhoz; a hang már lejátszható."
-                : "A timeline-ra húzott média itt jelenik meg."}
+                ? "Add video to the V1 track; audio is ready to play."
+                : "Media dropped onto the timeline appears here."}
             </span>
           </div>
         )}
@@ -275,7 +275,7 @@ export const Preview = memo(function Preview({
           <button
             className="icon-button"
             type="button"
-            aria-label="Ugrás az elejére"
+            aria-label="Jump to start"
             disabled={!hasTimelineContent}
             onClick={() => {
               onPlayingChange(false);
@@ -287,7 +287,7 @@ export const Preview = memo(function Preview({
           <button
             className="icon-button"
             type="button"
-            aria-label="Egy képkockával vissza"
+            aria-label="Previous frame"
             disabled={!hasTimelineContent}
             onClick={() => step(-1)}
           >
@@ -296,7 +296,7 @@ export const Preview = memo(function Preview({
           <button
             className="play-button"
             type="button"
-            aria-label={playing ? "Szünet" : "Lejátszás"}
+            aria-label={playing ? "Pause" : "Play"}
             disabled={!hasTimelineContent}
             onClick={togglePlayback}
           >
@@ -305,7 +305,7 @@ export const Preview = memo(function Preview({
           <button
             className="icon-button"
             type="button"
-            aria-label="Egy képkockával előre"
+            aria-label="Next frame"
             disabled={!hasTimelineContent}
             onClick={() => step(1)}
           >
@@ -314,7 +314,7 @@ export const Preview = memo(function Preview({
           <button
             className="icon-button"
             type="button"
-            aria-label="Ugrás a végére"
+            aria-label="Jump to end"
             disabled={!hasTimelineContent}
             onClick={() => {
               onPlayingChange(false);
@@ -336,8 +336,8 @@ export const Preview = memo(function Preview({
             type="button"
             aria-label={
               selectedClip?.muted
-                ? "Kijelölt klip hangjának visszakapcsolása"
-                : "Kijelölt klip némítása"
+                ? "Unmute selected clip"
+                : "Mute selected clip"
             }
             aria-pressed={Boolean(selectedClip?.muted)}
             disabled={!selectedClip || !selectedHasAudio}
@@ -349,7 +349,7 @@ export const Preview = memo(function Preview({
             <Icon name={selectedClip?.muted ? "mute" : "volume"} />
           </button>
           <input
-            aria-label="Kijelölt klip hangereje"
+            aria-label="Selected clip volume"
             disabled={!selectedClip || !selectedHasAudio}
             max="1"
             min="0"
